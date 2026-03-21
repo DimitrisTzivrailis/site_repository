@@ -2,32 +2,49 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Will You Be My Valentine? 💖</title>
+  <title>For You ❤️</title>
   <style>
     body {
-      background: #ffe6ec;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to bottom, #ffe6eb, #ffd6e0);
       text-align: center;
       font-family: Arial, sans-serif;
-      padding: 40px;
       overflow: hidden;
-      position: relative;
-    } 
-
-    img {
-      max-width: 90%;
-      height: auto;
-      border-radius: 20px;
+      height: 100vh;
     }
 
     h1 {
       color: #d6336c;
       margin-top: 30px;
+      font-size: 36px;
+      z-index: 2;
+      position: relative;
+    }
+
+    p {
+      color: #6a1b4d;
+      font-size: 22px;
+      width: 80%;
+      margin: auto;
+      line-height: 1.6;
+      z-index: 2;
+      position: relative;
+    }
+
+    img {
+      max-width: 250px;
+      margin-top: 20px;
+      border-radius: 20px;
+      z-index: 2;
+      position: relative;
     }
 
     .buttons {
-      margin-top: 40px;
+      margin-top: 50px;
       position: relative;
-      height: 200px;
+      height: 250px;
+      z-index: 2;
     }
 
     button {
@@ -37,105 +54,84 @@
       border-radius: 40px;
       cursor: pointer;
       position: absolute;
-      transition: all 0.3s ease;
+      transition: 0.3s;
     }
 
     #yesBtn {
       background-color: #ff4d6d;
       color: white;
-      left: 50%;
-      transform: translateX(-120%);
+      left: 40%;
     }
 
     #noBtn {
-      background-color: #adb5bd;
+      background-color: #6c757d;
       color: white;
-      left: 50%;
-      transform: translateX(20%);
+      left: 55%;
     }
 
-    #yesMessage {
+    #message {
       display: none;
       margin-top: 40px;
-      font-size: 28px;
+      font-size: 30px;
       color: #d6336c;
+      font-weight: bold;
+      z-index: 2;
+      position: relative;
     }
 
     .heart {
       position: absolute;
+      color: rgba(255, 0, 100, 0.7);
       font-size: 24px;
-      color: #ff4d6d;
-      pointer-events: none;
-      animation: floatUp 4s linear infinite;
+      animation: float 6s linear infinite;
     }
 
-    @keyframes floatUp {
-      0% { transform: translateY(0) scale(1); opacity: 1; }
-      100% { transform: translateY(-500px) scale(1.5); opacity: 0; }
+    @keyframes float {
+      from {
+        transform: translateY(100vh);
+        opacity: 1;
+      }
+      to {
+        transform: translateY(-10vh);
+        opacity: 0;
+      }
     }
   </style>
 </head>
 <body>
 
-  <img src="love.gif" alt="Love GIF">
+  <img src="bubu-dudu-kisses.gif" alt="Love">
 
-  <h1 id="greeting">Will you be my Valentine? 💘</h1>
+  <h1>I Am Sorry ❤️</h1>
+
+  <p>
+    I want to sincerely say I am sorry...
+    You are very precious to me, and I love you deeply 💕
+    My heart always chooses you 🌹
+  </p>
+
+  <h1>Do you still love me? 💘</h1>
 
   <div class="buttons">
-    <button id="yesBtn" onclick="showLove()">YES 💖</button>
+    <button id="yesBtn" onclick="showMessage()">YES ❤️</button>
     <button id="noBtn" onmouseover="runAway()">NO 🙈</button>
   </div>
 
-  <div id="yesMessage">
-    YAY!!! 💕💞 🥰<br>
-    <span id="customMessage"></span>
+  <div id="message">
+    Thank you my love 💖🥰 You make my world beautiful 🌹
   </div>
 
-  <!-- Confetti canvas -->
-  <canvas id="confettiCanvas" style="position: fixed; top:0; left:0; width:100%; height:100%; pointer-events:none;"></canvas>
-
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <script>
-    // Custom name
-    const herName = "Emma"; // Change this to your love's name
-
-    function showLove() {
+    function showMessage() {
       document.querySelector(".buttons").style.display = "none";
-      document.getElementById("yesMessage").style.display = "block";
-      document.getElementById("customMessage").innerText = `I love you, ${Stella}! 😘`;
-
-      // Confetti explosion
-      const duration = 3000;
-      const end = Date.now() + duration;
-
-      (function frame() {
-        confetti({
-          particleCount: 5,
-          angle: 60,
-          spread: 55,
-          origin: { x: 0 },
-        });
-        confetti({
-          particleCount: 5,
-          angle: 120,
-          spread: 55,
-          origin: { x: 1 },
-        });
-
-        if (Date.now() < end) {
-          requestAnimationFrame(frame);
-        }
-      }());
-
-      // Floating hearts
-      setInterval(createHeart, 400);
+      document.getElementById("message").style.display = "block";
     }
 
     function runAway() {
       const noBtn = document.getElementById("noBtn");
 
-      const maxX = window.innerWidth - noBtn.offsetWidth - 100;
-      const maxY = window.innerHeight - noBtn.offsetHeight - 100;
+      const maxX = window.innerWidth - noBtn.offsetWidth;
+      const maxY = window.innerHeight - noBtn.offsetHeight;
 
       const randomX = Math.random() * maxX;
       const randomY = Math.random() * maxY;
@@ -147,15 +143,20 @@
     function createHeart() {
       const heart = document.createElement("div");
       heart.classList.add("heart");
-      heart.innerText = "💖";
+      heart.innerHTML = "❤️";
+
       heart.style.left = Math.random() * window.innerWidth + "px";
       heart.style.fontSize = (20 + Math.random() * 20) + "px";
+      heart.style.animationDuration = (3 + Math.random() * 3) + "s";
+
       document.body.appendChild(heart);
 
       setTimeout(() => {
         heart.remove();
-      }, 4000);
+      }, 6000);
     }
+
+    setInterval(createHeart, 300);
   </script>
 
 </body>
