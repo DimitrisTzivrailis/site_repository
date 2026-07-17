@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -93,7 +92,7 @@
   .btn.primary{background:var(--gold);color:#0b0d12;border-color:var(--gold);font-weight:500;}
   .btn.primary:hover{background:#eab46f;color:#0b0d12;}
 
-  /* ---------- LANDSCAPE SIGNATURE (toggle switch, dual-wall) ---------- */
+  /* ---------- LANDSCAPE SIGNATURE (toggle switch, TikZ-faithful) ---------- */
   .landscape-card{
     background:var(--panel);
     border:1px solid var(--line);
@@ -268,40 +267,63 @@
       <a class="btn" href="#method">See the mechanism</a>
     </div>
 
-    <!-- ===== interactive energy-landscape toggle (dual-wall) ===== -->
+    <!-- ===== interactive energy-landscape toggle, faithful to Fig. 1 TikZ ===== -->
     <div class="landscape-card reveal">
-      <svg viewBox="0 0 860 260" xmlns="http://www.w3.org/2000/svg" aria-label="Energy landscape diagram">
-        <line x1="20" y1="220" x2="840" y2="220" stroke="#242a36" stroke-width="1"/>
+      <svg viewBox="0 0 860 480" xmlns="http://www.w3.org/2000/svg" aria-label="Energy landscape diagram">
 
-        <!-- physical basin fill -->
-        <path d="M 260 220 C 300 220, 300 120, 400 118 C 500 120, 500 220, 540 220 Z" fill="#5fc9d6" opacity="0.08"/>
+        <!-- axes -->
+        <defs>
+          <marker id="axArrow" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+            <path d="M0,0 L8,4 L0,8 Z" fill="#5b6272"/>
+          </marker>
+        </defs>
+        <line x1="60" y1="430" x2="60" y2="45" stroke="#5b6272" stroke-width="1.5" marker-end="url(#axArrow)"/>
+        <line x1="60" y1="430" x2="800" y2="430" stroke="#5b6272" stroke-width="1.5" marker-end="url(#axArrow)"/>
+        <text x="42" y="55" font-family="JetBrains Mono, monospace" font-size="13" fill="#8b93a3">E</text>
+        <text x="805" y="440" font-family="JetBrains Mono, monospace" font-size="11" fill="#8b93a3">configuration space</text>
 
-        <!-- base landscape: physical basin + approach to the spurious well -->
-        <path d="M 20 90 C 120 95, 180 210, 260 218
-                 C 300 220, 300 118, 400 116
-                 C 500 118, 500 220, 540 218
-                 C 610 216, 660 150, 700 140"
-              fill="none" stroke="#3a4152" stroke-width="2"/>
+        <!-- training region box -->
+        <rect x="220" y="169" width="260" height="174" rx="8" fill="none" stroke="#5b6272" stroke-width="1.4" stroke-dasharray="5 4"/>
+        <text x="350" y="152" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#8b93a3">training region</text>
 
-        <!-- spurious well (fades gray once walled off) -->
-        <path id="spurWell" d="M 700 140 C 730 132, 745 210, 762 232 C 772 244, 786 244, 796 240"
-              fill="none" stroke="var(--red)" stroke-width="2.5" style="transition:stroke .3s ease;"/>
+        <!-- scattered training-data dots inside the box -->
+        <g fill="#6b7280">
+          <circle cx="252" cy="288" r="2.4"/>
+          <circle cx="278" cy="308" r="2.4"/>
+          <circle cx="304" cy="320" r="2.4"/>
+          <circle cx="336" cy="322" r="2.4"/>
+          <circle cx="368" cy="318" r="2.4"/>
+          <circle cx="398" cy="300" r="2.4"/>
+          <circle cx="426" cy="270" r="2.4"/>
+          <circle cx="450" cy="240" r="2.4"/>
+        </g>
 
-        <!-- tail beyond the well -->
-        <path d="M 796 240 C 810 238, 825 220, 840 210" fill="none" stroke="#3a4152" stroke-width="2"/>
+        <!-- raised wall curve (red -> gold) : hidden under MSE, revealed under CRMSE -->
+        <path id="wallCurve"
+              d="M 68,196 L 140,292 L 196,148 L 316,316 L 400,316 L 508,136 L 556,334 L 636,196 L 716,250 L 780,166"
+              fill="none" stroke="var(--gold)" stroke-width="0" stroke-linejoin="round" stroke-linecap="round"
+              style="transition:stroke-width .5s ease;"/>
 
-        <!-- LEFT wall — rises on the near side of the well -->
-        <path id="leftWall" d="M 686 140 C 698 55, 712 55, 724 138"
-              fill="none" stroke="var(--gold)" stroke-width="0" style="transition:stroke-width .5s ease;"/>
+        <!-- base learned landscape (always visible; fades to 'ghost' under CRMSE) -->
+        <path id="baseCurve"
+              d="M 60,250 L 140,352 L 220,202 L 316,322 L 396,322 L 476,220 L 556,400 L 636,262 L 716,310 L 780,250"
+              fill="none" stroke="var(--cyan)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"
+              style="transition:opacity .5s ease;"/>
 
-        <!-- RIGHT wall — rises on the far side of the well -->
-        <path id="rightWall" d="M 774 236 C 786 165, 802 165, 812 230"
-              fill="none" stroke="var(--gold)" stroke-width="0" style="transition:stroke-width .5s ease;"/>
+        <!-- trajectory: MSE — escapes the box into the spurious minimum -->
+        <path id="trajMSE"
+              d="M 380,328 L 316,321 L 404,301 L 396,286 L 308,301 L 436,244 L 300,286 L 300,262 L 468,216 L 508,226 L 500,244 L 632,262 L 500,268 L 620,286 L 524,321 L 560,385 L 564,394"
+              fill="none" stroke="var(--red)" stroke-width="2" stroke-dasharray="5 4" stroke-linecap="round"/>
 
-        <text x="400" y="105" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#5fc9d6">physical basin (DFT)</text>
-        <text id="wellLabel" x="741" y="128" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" fill="var(--red)" opacity="0">ghost minimum</text>
+        <!-- trajectory: CRMSE — stays confined, bounces off the raised wall -->
+        <path id="trajCR"
+              d="M 380,328 L 316,321 L 404,301 L 396,286 L 308,301 L 436,244 L 300,286 L 300,262 L 452,216 L 260,226 L 468,190 L 236,178 L 484,148 L 220,130 L 476,160 L 244,202 L 404,274"
+              fill="none" stroke="var(--gold)" stroke-width="2" stroke-dasharray="5 4" stroke-linecap="round" opacity="0"/>
 
-        <circle id="ball" cx="400" cy="106" r="9" fill="#e9ecf1"/>
+        <text id="ghostMinLabel" x="560" y="415" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" fill="var(--red)">spurious minimum</text>
+
+        <!-- ball marks the end of the current trajectory -->
+        <circle id="ball" cx="564" cy="394" r="8" fill="#e9ecf1"/>
       </svg>
 
       <div class="toggle-row">
@@ -311,7 +333,7 @@
         </div>
         <span id="crLabel" class="cr-label">CRMSE post-training</span>
       </div>
-      <div class="caption-small" id="landscapeCaption">the trajectory drifts out of the training-supported region and falls into a spurious low-energy minimum</div>
+      <div class="caption-small" id="landscapeCaption">the MCMC trajectory drifts out of the training region and settles into a spurious low-energy minimum</div>
     </div>
   </div>
 </header>
@@ -492,12 +514,13 @@ https://arxiv.org/abs/2606.31660</div>
   },{threshold:0.12});
   document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
 
-  // ---- energy landscape toggle (walls rise from both sides of the well) ----
+  // ---- energy landscape toggle, TikZ-faithful ----
   const sw = document.getElementById('landscapeSwitch');
-  const leftWall = document.getElementById('leftWall');
-  const rightWall = document.getElementById('rightWall');
-  const spurWell = document.getElementById('spurWell');
-  const wellLabel = document.getElementById('wellLabel');
+  const wallCurve = document.getElementById('wallCurve');
+  const baseCurve = document.getElementById('baseCurve');
+  const trajMSE = document.getElementById('trajMSE');
+  const trajCR = document.getElementById('trajCR');
+  const ghostMinLabel = document.getElementById('ghostMinLabel');
   const ball = document.getElementById('ball');
   const mseLabel = document.getElementById('mseLabel');
   const crLabel = document.getElementById('crLabel');
@@ -509,22 +532,24 @@ https://arxiv.org/abs/2606.31660</div>
       sw.classList.add('on');
       mseLabel.classList.remove('active');
       crLabel.classList.add('active');
-      leftWall.setAttribute('stroke-width','3');
-      rightWall.setAttribute('stroke-width','3');
-      spurWell.setAttribute('stroke','#3a4152');
-      wellLabel.setAttribute('opacity','0');
-      ball.setAttribute('cx','400'); ball.setAttribute('cy','106'); ball.setAttribute('fill','#e0a458');
-      caption.textContent = 'walls rise on both sides of the atypical region — the sampler stays sealed inside the physical basin';
+      wallCurve.setAttribute('stroke-width','3');
+      baseCurve.setAttribute('opacity','0.35');
+      trajMSE.setAttribute('opacity','0');
+      trajCR.setAttribute('opacity','1');
+      ghostMinLabel.setAttribute('opacity','0');
+      ball.setAttribute('cx','404'); ball.setAttribute('cy','274'); ball.setAttribute('fill','var(--gold)');
+      caption.textContent = 'the contrastive term raises a wall outside the training region — the trajectory bounces back instead of escaping';
     } else {
       sw.classList.remove('on');
       crLabel.classList.remove('active');
       mseLabel.classList.add('active');
-      leftWall.setAttribute('stroke-width','0');
-      rightWall.setAttribute('stroke-width','0');
-      spurWell.setAttribute('stroke','var(--red)');
-      wellLabel.setAttribute('opacity','1');
-      ball.setAttribute('cx','770'); ball.setAttribute('cy','236'); ball.setAttribute('fill','#e9ecf1');
-      caption.textContent = 'the trajectory drifts out of the training-supported region and falls into a spurious low-energy minimum';
+      wallCurve.setAttribute('stroke-width','0');
+      baseCurve.setAttribute('opacity','1');
+      trajMSE.setAttribute('opacity','1');
+      trajCR.setAttribute('opacity','0');
+      ghostMinLabel.setAttribute('opacity','1');
+      ball.setAttribute('cx','564'); ball.setAttribute('cy','394'); ball.setAttribute('fill','#e9ecf1');
+      caption.textContent = 'the MCMC trajectory drifts out of the training region and settles into a spurious low-energy minimum';
     }
   }
   sw.addEventListener('click', ()=>{ crmse=!crmse; renderLandscape(); });
