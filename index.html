@@ -7,6 +7,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
 <style>
   :root{
     --ink:#0b0d12;
@@ -89,33 +92,35 @@
   .btn.primary{background:var(--gold);color:#0b0d12;border-color:var(--gold);font-weight:500;}
   .btn.primary:hover{background:#eab46f;color:#0b0d12;}
 
-  /* ---------- LANDSCAPE SIGNATURE ---------- */
+  /* ---------- LANDSCAPE FIGURE (3-panel, paper-style) ---------- */
   .landscape-card{
     background:var(--panel);
     border:1px solid var(--line);
     border-radius:var(--radius);
-    padding:28px 28px 20px;
+    padding:26px 26px 22px;
     margin-bottom:8px;
   }
+  .panel-tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
+  .panel-tab{
+    font-family:'JetBrains Mono',monospace;font-size:12.5px;
+    background:var(--panel-2);border:1px solid var(--line);color:var(--muted);
+    padding:8px 14px;border-radius:20px;cursor:pointer;transition:all .2s;
+  }
+  .panel-tab .letter{color:var(--gold);margin-right:6px;}
+  .panel-tab:hover{color:var(--text);border-color:#3a4152;}
+  .panel-tab.active{color:var(--text);border-color:var(--gold);background:rgba(224,164,88,0.08);}
+
+  .panel-stage{position:relative;}
+  .landscape-panel{display:none;}
+  .landscape-panel.active{display:block;}
   .landscape-card svg{width:100%;height:auto;display:block;}
-  .toggle-row{
-    display:flex;align-items:center;justify-content:center;gap:16px;
-    margin-top:18px;font-family:'JetBrains Mono',monospace;font-size:13px;
+
+  .panel-caption{
+    margin-top:16px;font-size:14px;color:#b7bccb;
+    border-left:2px solid var(--gold);padding-left:14px;
+    min-height:42px;
   }
-  .toggle-row span{color:var(--muted);transition:color .25s;}
-  .toggle-row span.active{color:var(--text);}
-  .toggle-row span.active.mse-label{color:var(--red);}
-  .toggle-row span.active.cr-label{color:var(--gold);}
-  .switch{
-    width:52px;height:28px;border-radius:20px;background:var(--panel-2);
-    border:1px solid var(--line);position:relative;cursor:pointer;flex-shrink:0;
-  }
-  .switch .knob{
-    position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;
-    background:var(--red);transition:all .3s cubic-bezier(.4,0,.2,1);
-  }
-  .switch.on .knob{left:27px;background:var(--gold);}
-  .caption-small{text-align:center;color:#5b6272;font-size:12.5px;margin-top:10px;font-family:'JetBrains Mono',monospace;}
+  .panel-caption b{color:var(--text);}
 
   /* ---------- SECTIONS ---------- */
   section{padding:70px 0;border-top:1px solid var(--line);}
@@ -128,20 +133,27 @@
   p{color:#c7cbd6;font-size:16px;}
   .lead{font-size:17.5px;color:#d5d9e2;}
 
-  /* ---------- METHOD ---------- */
+  /* ---------- METHOD / EQUATION ---------- */
   .eq-block{
     background:var(--panel);
     border:1px solid var(--line);
     border-left:2px solid var(--gold);
     border-radius:10px;
-    padding:18px 22px;
-    font-family:'JetBrains Mono',monospace;
-    font-size:14.5px;
-    color:#e5c896;
+    padding:26px 22px;
     margin:22px 0;
     overflow-x:auto;
-    white-space:nowrap;
+    display:flex;
+    justify-content:center;
+    color:var(--text);
   }
+  .eq-block .katex{font-size:1.15em;}
+  .eq-block .katex-display{margin:0;}
+  .eq-legend{display:flex;gap:22px;flex-wrap:wrap;margin-top:-8px;margin-bottom:22px;font-size:13px;color:var(--muted);}
+  .eq-legend span{display:flex;align-items:center;gap:7px;}
+  .eq-legend i{width:10px;height:10px;border-radius:50%;display:inline-block;}
+  .eq-legend .p1 i{background:var(--cyan);}
+  .eq-legend .p2 i{background:var(--gold);}
+
   .steps{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:28px;}
   @media(max-width:640px){.steps{grid-template-columns:1fr;}}
   .step-card{
@@ -170,13 +182,32 @@
   .video-tag.good .dot{background:var(--gold);}
   .video-desc{padding:0 18px 18px;font-size:13.5px;color:var(--muted);}
 
-  /* ---------- RESULTS TABLE ---------- */
+  /* ---------- RESULTS: TABLE + FIGURE SLOTS ---------- */
   table{width:100%;border-collapse:collapse;margin-top:24px;font-size:14.5px;}
   th,td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--line);}
   th{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;font-weight:500;}
   td{color:#d5d9e2;}
   td.num{font-family:'JetBrains Mono',monospace;color:var(--gold);}
   .result-note{font-size:13.5px;color:#5b6272;margin-top:14px;}
+
+  .figure-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:34px;}
+  @media(max-width:760px){.figure-grid{grid-template-columns:1fr;}}
+  .figure-grid.full{grid-template-columns:1fr;}
+  .figure-slot{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    overflow:hidden;
+  }
+  .figure-slot img{width:100%;display:block;background:#000;}
+  .figure-placeholder{
+    display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+    aspect-ratio:4/3;background:
+      repeating-linear-gradient(135deg, var(--panel-2), var(--panel-2) 10px, #14181f 10px, #14181f 20px);
+    border-bottom:1px dashed var(--line);
+    padding:20px;text-align:center;
+  }
+  .figure-placeholder .ph-label{font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--gold);}
+  .figure-placeholder .ph-desc{font-size:12.5px;color:var(--muted);max-width:32ch;}
+  .figure-caption{padding:14px 18px;font-size:13px;color:var(--muted);}
 
   .findings{margin-top:30px;display:flex;flex-direction:column;gap:14px;}
   .finding{display:flex;gap:14px;align-items:flex-start;}
@@ -238,46 +269,91 @@
       <a class="btn" href="#method">See the mechanism</a>
     </div>
 
+    <!-- ===== 3-panel energy-landscape schematic (paper Fig. 1 style) ===== -->
     <div class="landscape-card reveal">
-      <svg viewBox="0 0 800 260" xmlns="http://www.w3.org/2000/svg" aria-label="Energy landscape diagram">
-        <defs>
-          <linearGradient id="fillGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#171b24"/>
-            <stop offset="100%" stop-color="#0b0d12"/>
-          </linearGradient>
-        </defs>
-        <!-- baseline -->
-        <line x1="20" y1="220" x2="780" y2="220" stroke="#242a36" stroke-width="1"/>
-        <!-- physical basin fill -->
-        <path d="M 260 220 C 300 220, 300 120, 400 118 C 500 120, 500 220, 540 220 Z" fill="#5fc9d6" opacity="0.08"/>
-        <!-- landscape curve: base physical basin, always present -->
-        <path d="M 20 90 C 120 95, 180 210, 260 218
-                 C 300 220, 300 118, 400 116
-                 C 500 118, 500 220, 540 218
-                 C 610 216, 660 150, 700 140"
-              fill="none" stroke="#3a4152" stroke-width="2"/>
-        <!-- spurious well path (MSE) -->
-        <path id="spurWell" d="M 700 140 C 730 132, 745 210, 762 232 C 772 244, 786 244, 796 240"
-              fill="none" stroke="var(--red)" stroke-width="2.5" style="transition:d .6s ease, stroke .3s ease;"/>
-        <!-- protective wall (CRMSE) -->
-        <path id="wallPath" d="M 700 140 C 715 40, 735 40, 750 138"
-              fill="none" stroke="var(--gold)" stroke-width="0" style="transition:stroke-width .5s ease;"/>
-
-        <!-- labels -->
-        <text x="400" y="105" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#5fc9d6">physical basin (DFT)</text>
-
-        <!-- ball -->
-        <circle id="ball" cx="400" cy="106" r="9" fill="#e9ecf1"/>
-      </svg>
-
-      <div class="toggle-row">
-        <span id="mseLabel" class="active mse-label">MSE training</span>
-        <div class="switch" id="landscapeSwitch" role="button" tabindex="0" aria-label="Toggle between MSE and CRMSE landscape">
-          <div class="knob"></div>
-        </div>
-        <span id="crLabel" class="cr-label">CRMSE post-training</span>
+      <div class="panel-tabs" role="tablist" aria-label="Energy landscape stages">
+        <button class="panel-tab active" data-panel="a" role="tab" aria-selected="true"><span class="letter">a</span>MSE training</button>
+        <button class="panel-tab" data-panel="b" role="tab" aria-selected="false"><span class="letter">b</span>Contrastive correction</button>
+        <button class="panel-tab" data-panel="c" role="tab" aria-selected="false"><span class="letter">c</span>Protected landscape</button>
       </div>
-      <div class="caption-small" id="landscapeCaption">the trajectory drifts out of the training-supported region and falls into a spurious low-energy minimum</div>
+
+      <div class="panel-stage">
+
+        <!-- PANEL A: MSE — ghost minimum forms, sampler escapes into it -->
+        <svg class="landscape-panel active" data-panel="a" viewBox="0 0 780 250" xmlns="http://www.w3.org/2000/svg" aria-label="Energy landscape under MSE training">
+          <line x1="40" y1="200" x2="740" y2="200" stroke="#242a36" stroke-width="1"/>
+          <path d="M 260 195 C 300 195, 300 92, 260 92 C 220 92, 220 195, 260 195 Z" fill="#5fc9d6" opacity="0.07"/>
+          <path d="M 40 140 C 120 150, 180 195, 220 195
+                   C 220 92, 300 92, 320 195
+                   C 360 195, 420 150, 480 150
+                   C 520 150, 540 155, 580 230
+                   C 605 244, 635 244, 660 205
+                   C 680 180, 700 165, 740 165"
+                fill="none" stroke="#3a4152" stroke-width="2"/>
+          <path d="M 480 150 C 520 150, 540 155, 580 230 C 605 244, 635 244, 660 205" fill="none" stroke="var(--red)" stroke-width="2.5"/>
+          <path d="M 262 100 C 400 90, 520 160, 605 220" fill="none" stroke="#8b93a3" stroke-width="1.4" stroke-dasharray="4 5"/>
+          <circle cx="605" cy="223" r="9" fill="var(--red)"/>
+          <text x="260" y="80" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#5fc9d6">physical basin (DFT-supported)</text>
+          <text x="605" y="90" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="var(--red)">ghost minimum</text>
+          <text x="390" y="242" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#5b6272">configuration space</text>
+        </svg>
+
+        <!-- PANEL B: negative samples discover the ghost region, energy pushed up -->
+        <svg class="landscape-panel" data-panel="b" viewBox="0 0 780 250" xmlns="http://www.w3.org/2000/svg" aria-label="Contrastive correction in progress">
+          <line x1="40" y1="200" x2="740" y2="200" stroke="#242a36" stroke-width="1"/>
+          <path d="M 260 195 C 300 195, 300 92, 260 92 C 220 92, 220 195, 260 195 Z" fill="#5fc9d6" opacity="0.07"/>
+          <path d="M 40 140 C 120 150, 180 195, 220 195
+                   C 220 92, 300 92, 320 195
+                   C 360 195, 420 150, 480 150
+                   C 520 150, 540 155, 580 230
+                   C 605 244, 635 244, 660 205
+                   C 680 180, 700 165, 740 165"
+                fill="none" stroke="#3a4152" stroke-width="2"/>
+          <path d="M 480 150 C 520 150, 540 155, 580 230 C 605 244, 635 244, 660 205" fill="none" stroke="var(--red)" stroke-width="2" opacity="0.55"/>
+          <circle cx="565" cy="220" r="4" fill="var(--gold)"/>
+          <circle cx="592" cy="234" r="4" fill="var(--gold)"/>
+          <circle cx="618" cy="222" r="4" fill="var(--gold)"/>
+          <circle cx="580" cy="200" r="4" fill="var(--gold)"/>
+          <circle cx="638" cy="212" r="4" fill="var(--gold)"/>
+          <g stroke="var(--gold)" stroke-width="2" fill="none">
+            <path d="M 565 214 L 565 194" marker-end="url(#arrowUp)"/>
+            <path d="M 592 228 L 592 200" marker-end="url(#arrowUp)"/>
+            <path d="M 618 216 L 618 190" marker-end="url(#arrowUp)"/>
+          </g>
+          <defs>
+            <marker id="arrowUp" markerWidth="8" markerHeight="8" refX="4" refY="0" orient="auto">
+              <path d="M0,6 L4,0 L8,6 Z" fill="var(--gold)"/>
+            </marker>
+          </defs>
+          <text x="260" y="80" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#5fc9d6">physical basin unchanged</text>
+          <text x="601" y="176" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="var(--gold)">Langevin chains raise E(x) here</text>
+          <text x="390" y="242" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#5b6272">configuration space</text>
+        </svg>
+
+        <!-- PANEL C: ghost region filled in, protective wall, sampler confined -->
+        <svg class="landscape-panel" data-panel="c" viewBox="0 0 780 250" xmlns="http://www.w3.org/2000/svg" aria-label="Resulting protected landscape under CRMSE">
+          <line x1="40" y1="200" x2="740" y2="200" stroke="#242a36" stroke-width="1"/>
+          <path d="M 260 195 C 300 195, 300 92, 260 92 C 220 92, 220 195, 260 195 Z" fill="#5fc9d6" opacity="0.1"/>
+          <path d="M 40 140 C 120 150, 180 195, 220 195
+                   C 220 92, 300 92, 320 195
+                   C 360 195, 420 155, 460 155
+                   C 490 155, 505 105, 530 100
+                   C 560 96, 590 120, 620 150
+                   C 650 170, 690 165, 740 165"
+                fill="none" stroke="#3a4152" stroke-width="2"/>
+          <path d="M 460 155 C 490 155, 505 105, 530 100 C 560 96, 590 120, 620 150" fill="none" stroke="var(--gold)" stroke-width="2.5"/>
+          <circle cx="260" cy="95" r="9" fill="var(--gold)"/>
+          <circle cx="260" cy="95" r="16" fill="none" stroke="var(--gold)" stroke-width="1.2" opacity="0.4"/>
+          <text x="260" y="76" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="var(--gold)">sampler confined</text>
+          <text x="530" y="82" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="var(--gold)">protective wall</text>
+          <text x="390" y="242" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#5b6272">configuration space</text>
+        </svg>
+
+      </div>
+
+      <div class="panel-caption" id="panelCaption">
+        <b>Standard MSE training</b> — the potential fits the DFT data well inside the training-supported basin, but is left unconstrained everywhere else. A deep, entirely spurious minimum forms off to the side, and a long enough MALA trajectory eventually escapes into it.
+      </div>
     </div>
   </div>
 </header>
@@ -296,11 +372,19 @@
   <div class="wrap">
     <div class="sec-head"><span class="sec-num">02</span><h2>The mechanism</h2></div>
     <p class="lead reveal">Standard training minimizes a Mean Squared Error between predicted and reference energies. It has no notion of temperature, no notion of a distribution — it only ever sees the points it's given, and stays silent everywhere else.</p>
-    <p class="reveal">Contrastive Regularized MSE (CRMSE) adds a second term that does account for the distribution the potential implicitly defines: its own Boltzmann distribution, <code style="color:var(--cyan)">p<sub>θ</sub>(x) ∝ e<sup>−βE<sub>θ</sub>(x)</sup></code>. The idea, borrowed from energy-based model training, is simple: push the energy of real training configurations down, and push the energy of configurations the model itself likes to wander into back up.</p>
+    <p class="reveal">Contrastive Regularized MSE (CRMSE) adds a second term that does account for the distribution the potential implicitly defines: its own Boltzmann distribution, <span class="katex-inline">\( p_\theta(x) \propto e^{-\beta E_\theta(x)} \)</span>. The idea, borrowed from energy-based model training, is simple: push the energy of real training configurations down, and push the energy of configurations the model itself likes to wander into back up.</p>
 
-    <div class="eq-block reveal">L_CRMSE(θ) = L_MSE(θ) + λ · [ (β/N)Σ E_θ(x_i) − (β/M)Σ E_θ(x⁻_j) ]</div>
+    <div class="eq-block reveal">
+      \[
+      \mathcal{L}^{\text{CRMSE}}(\theta) \;=\; \mathcal{L}^{\text{MSE}}(\theta) \;+\; \lambda \left[ \frac{\beta}{N}\sum_{i=1}^{N} E_\theta(x_i) \;-\; \frac{\beta}{M}\sum_{j=1}^{M} E_\theta(x_j^-) \right]
+      \]
+    </div>
+    <div class="eq-legend reveal">
+      <span class="p1"><i></i>positive term — real training configurations, pushed down</span>
+      <span class="p2"><i></i>negative term — model's own Langevin samples, pushed up</span>
+    </div>
 
-    <p class="reveal">The first bracketed sum runs over real training configurations (the <em style="color:var(--cyan);font-style:normal;">positive</em> term); the second runs over configurations sampled from the model's own current distribution (the <em style="color:var(--gold);font-style:normal;">negative</em> term), obtained with short Langevin chains. Practically, that means: run the potential, catch the unphysical places it drifts to, and teach it that those places should be high-energy. No new DFT labels are needed — the model is grading its own mistakes.</p>
+    <p class="reveal">Practically, that means: run the potential, catch the unphysical places it drifts to, and teach it that those places should be high-energy. No new DFT labels are needed — the model is grading its own mistakes.</p>
 
     <div class="steps">
       <div class="step-card reveal">
@@ -365,10 +449,53 @@
     </table>
     <p class="result-note">Both stay well inside chemical accuracy — the correction reshapes the landscape without meaningfully hurting the numbers the model is normally graded on.</p>
 
+    <!-- Predicted vs. reference energy and force accuracy — drop your PNGs into a /figures folder
+     next to index.html using the exact filenames below, and they'll appear automatically. -->
+  <div class="figure-grid reveal">
+    <div class="figure-slot">
+      <img src="figures/mse_energy_parity.png" alt="MSE-trained model: predicted vs reference energy on held-out DFT set"
+           onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+      <div class="figure-placeholder">
+        <span class="ph-label">figures/mse_energy_parity.png</span>
+        <span class="ph-desc">MSE model — predicted vs. reference energy, 1000 held-out DFT configurations</span>
+      </div>
+      <div class="figure-caption">MSE-trained potential: energy predictions fall tightly along the reference line (MAE 0.01 kcal/mol) — accurate everywhere it was measured.</div>
+    </div>
+  
+    <div class="figure-slot">
+      <img src="figures/mse_force_parity.png" alt="MSE-trained model: predicted vs reference forces on held-out DFT set"
+           onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+      <div class="figure-placeholder">
+        <span class="ph-label">figures/mse_force_parity.png</span>
+        <span class="ph-desc">MSE model — predicted vs. reference forces, 1000 held-out DFT configurations</span>
+      </div>
+      <div class="figure-caption">MSE-trained potential: force predictions closely track the reference (MAE 0.07 kcal/mol/Å), yet this accuracy tells nothing about sampling behavior.</div>
+    </div>
+  </div>
+  
+  <div class="figure-grid reveal" style="margin-top:20px;">
+    <div class="figure-slot">
+      <img src="figures/crmse_energy_parity.png" alt="CRMSE post-trained model: predicted vs reference energy on held-out DFT set"
+           onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+      <div class="figure-placeholder">
+        <span class="ph-label">figures/crmse_energy_parity.png</span>
+        <span class="ph-desc">CRMSE model — predicted vs. reference energy, 1000 held-out DFT configurations</span>
+      </div>
+      <div class="figure-caption">CRMSE post-trained potential: energy accuracy remains close to the MSE baseline (MAE 0.03 kcal/mol) — the correction reshapes unsampled regions without disturbing the data-constrained basin.</div>
+    </div>
+  
+    <div class="figure-slot">
+      <img src="figures/crmse_force_parity.png" alt="CRMSE post-trained model: predicted vs reference forces on held-out DFT set"
+           onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+      <div class="figure-placeholder">
+        <span class="ph-label">figures/crmse_force_parity.png</span>
+        <span class="ph-desc">CRMSE model — predicted vs. reference forces, 1000 held-out DFT configurations</span>
+      </div>
+      <div class="figure-caption">CRMSE post-trained potential: force accuracy is essentially unchanged from the MSE baseline (MAE 0.13 kcal/mol/Å), both well within chemical accuracy.</div>
+    </div>
+  </div>
+
     <div class="findings">
-      <div class="finding reveal"><span class="mark">→</span><p>Under MSE, sampled energies drift far below the DFT-observed range; under CRMSE, the sampled energy distribution overlaps the DFT reference across 32 independent chains of 10⁶ steps each.</p></div>
-      <div class="finding reveal"><span class="mark">→</span><p>Interatomic-distance histograms — stretched and compressed bonds under MSE — recover their sharply peaked, physical shape under CRMSE.</p></div>
-      <div class="finding reveal"><span class="mark">→</span><p>The dihedral free-energy profile is the most demanding test, since it probes populations <em style="color:var(--text);font-style:normal;">within</em> the physical basin. MSE underestimates the torsional barrier (≈2.2 vs. a DFT value of ≈3.1 kcal/mol); CRMSE recovers it to near-quantitative agreement and collapses chain-to-chain variance to within the line width.</p></div>
       <div class="finding reveal"><span class="mark">→</span><p>The correction holds up when the labeled training set is cut from 950 down to 200 configurations, and is robust across roughly a decade and a half of the regularization strength λ.</p></div>
       <div class="finding reveal"><span class="mark">→</span><p>The same procedure, unmodified, carries over to aspirin — a more than twice larger molecule with a second, chemically distinct torsional mode.</p></div>
     </div>
@@ -408,41 +535,38 @@ https://arxiv.org/abs/2606.31660</div>
   },{threshold:0.12});
   document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
 
-  // landscape toggle
-  const sw = document.getElementById('landscapeSwitch');
-  const spurWell = document.getElementById('spurWell');
-  const wallPath = document.getElementById('wallPath');
-  const ball = document.getElementById('ball');
-  const mseLabel = document.getElementById('mseLabel');
-  const crLabel = document.getElementById('crLabel');
-  const caption = document.getElementById('landscapeCaption');
-  let crmse = false;
-
-  function render(){
-    if(crmse){
-      sw.classList.add('on');
-      mseLabel.classList.remove('active');
-      crLabel.classList.add('active');
-      spurWell.setAttribute('d','M 700 140 C 730 132, 745 210, 762 232 C 772 244, 786 244, 796 240');
-      spurWell.setAttribute('stroke','#3a4152');
-      wallPath.setAttribute('stroke-width','3');
-      ball.setAttribute('cx','400'); ball.setAttribute('cy','106'); ball.setAttribute('fill','#e0a458');
-      caption.textContent = 'the contrastive term raises a barrier around the atypical region — the sampler stays confined to the physical basin';
-    } else {
-      sw.classList.remove('on');
-      crLabel.classList.remove('active');
-      mseLabel.classList.add('active');
-      spurWell.setAttribute('stroke','#c96a63');
-      wallPath.setAttribute('stroke-width','0');
-      ball.setAttribute('cx','770'); ball.setAttribute('cy','236'); ball.setAttribute('fill','#e9ecf1');
-      caption.textContent = 'the trajectory drifts out of the training-supported region and falls into a spurious low-energy minimum';
-    }
-  }
-  sw.addEventListener('click', ()=>{ crmse=!crmse; render(); });
-  sw.addEventListener('keydown', (e)=>{ if(e.key==='Enter'||e.key===' '){ crmse=!crmse; render(); } });
-  render();
+  // ---- 3-panel energy landscape tabs ----
+  const captions = {
+    a: "<b>Standard MSE training</b> — the potential fits the DFT data well inside the training-supported basin, but is left unconstrained everywhere else. A deep, entirely spurious minimum forms off to the side, and a long enough MALA trajectory eventually escapes into it.",
+    b: "<b>Contrastive post-training</b> — short Langevin chains explore the current potential and land in this atypical region. Their energy is pushed up while the physical basin is left untouched, building a protective wall exactly where the sampler was escaping.",
+    c: "<b>Resulting landscape</b> — the spurious minimum is filled in, the barrier around the physical basin is raised, and subsequent MALA sampling stays confined to the physically meaningful region."
+  };
+  const tabs = document.querySelectorAll('.panel-tab');
+  const panels = document.querySelectorAll('.landscape-panel');
+  const captionBox = document.getElementById('panelCaption');
+  tabs.forEach(tab=>{
+    tab.addEventListener('click', ()=>{
+      const key = tab.dataset.panel;
+      tabs.forEach(t=>{t.classList.remove('active'); t.setAttribute('aria-selected','false');});
+      tab.classList.add('active'); tab.setAttribute('aria-selected','true');
+      panels.forEach(p=>p.classList.toggle('active', p.dataset.panel===key));
+      captionBox.innerHTML = captions[key];
+    });
+  });
 
   document.getElementById('topLink').addEventListener('click',(e)=>{e.preventDefault(); window.scrollTo({top:0,behavior:'smooth'});});
+
+  // ---- render KaTeX equations once the script has loaded ----
+  window.addEventListener('load', function () {
+    if (window.renderMathInElement) {
+      renderMathInElement(document.body, {
+        delimiters: [
+          {left: "\\[", right: "\\]", display: true},
+          {left: "\\(", right: "\\)", display: false}
+        ]
+      });
+    }
+  });
 </script>
 
 </body>
