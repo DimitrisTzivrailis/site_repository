@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>document.documentElement.classList.add('js');</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Contrastive Regularization of Machine Learning Potentials</title>
@@ -48,11 +47,10 @@
   nav .wrap{
     display:flex;align-items:center;justify-content:space-between;
     padding-top:14px;padding-bottom:14px;max-width:1000px;
-    flex-wrap:wrap;row-gap:8px;
   }
   .brand{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--muted);letter-spacing:0.02em;}
   .brand b{color:var(--ice);font-weight:500;}
-  .navlinks{display:flex;gap:18px;font-size:13.5px;flex-wrap:wrap;}
+  .navlinks{display:flex;gap:22px;font-size:14px;}
   .navlinks a{color:var(--text);text-decoration:none;opacity:0.75;transition:opacity .2s;}
   .navlinks a:hover{opacity:1;}
 
@@ -162,26 +160,6 @@
   .step-card .k{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--steel);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:8px;display:block;}
   .step-card p{margin:0;font-size:14.5px;color:#b6b6ba;}
 
-  /* ---------- OBSERVABLES (sampled configs / free-energy) ---------- */
-  .obs-molecule{margin-top:34px;}
-  .obs-molecule:first-of-type{margin-top:8px;}
-  .obs-molecule h3{
-    font-family:'Newsreader',serif;font-weight:500;font-size:20px;margin:0 0 6px;color:var(--text);
-  }
-  .obs-sub{color:var(--muted);font-size:13.5px;margin-bottom:18px;}
-  .obs-columns{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
-  @media(max-width:760px){.obs-columns{grid-template-columns:1fr;}}
-  .obs-col-head{
-    display:flex;align-items:center;gap:8px;
-    font-family:'JetBrains Mono',monospace;font-size:12.5px;margin-bottom:12px;
-  }
-  .obs-col-head .dot{width:7px;height:7px;border-radius:50%;display:inline-block;}
-  .obs-col-head.bad{color:var(--red);}
-  .obs-col-head.bad .dot{background:var(--red);}
-  .obs-col-head.good{color:var(--ice);}
-  .obs-col-head.good .dot{background:var(--ice);}
-  .obs-stack{display:flex;flex-direction:column;gap:16px;}
-
   /* ---------- VIDEOS ---------- */
   .video-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:30px;}
   @media(max-width:720px){.video-grid{grid-template-columns:1fr;}}
@@ -253,9 +231,7 @@
   .foot-links a:hover{color:var(--ice);}
   .foot-meta{color:#5a5b60;font-size:12.5px;margin-top:30px;}
 
-  /* ---------- REVEAL: visible by default, only animates once JS confirms it works ---------- */
-  .reveal{opacity:1;transform:none;}
-  html.js .reveal{opacity:0;transform:translateY(14px);transition:opacity .6s ease, transform .6s ease;}
+  .reveal{opacity:0;transform:translateY(14px);transition:opacity .6s ease, transform .6s ease;}
   .reveal.in{opacity:1;transform:translateY(0);}
 
   @media (prefers-reduced-motion: reduce){
@@ -271,9 +247,7 @@
     <div class="brand">CRMSE <b>/</b> potentials</div>
     <div class="navlinks">
       <a href="#method">Method</a>
-      <a href="#observables">Observables</a>
       <a href="#videos">Videos</a>
-      <a href="#free-energy">Free energy</a>
       <a href="#results">Results</a>
       <a href="#cite">Cite</a>
     </div>
@@ -460,124 +434,10 @@
   </div>
 </section>
 
-<!-- ================= SAMPLED CONFIGURATIONS (OBSERVABLES) ================= -->
-<section id="observables">
-  <div class="wrap">
-    <div class="sec-head"><span class="sec-num">03</span><h2>Sampled configurations</h2></div>
-    <p class="lead reveal">Aggregate statistics only go so far — individual snapshots pulled from the MALA chains tell the same story more directly. Under MSE, sampled geometries drift into implausible arrangements; under CRMSE, they stay physically sensible.</p>
-
-    <div class="obs-molecule reveal">
-      <h3>Ethanol</h3>
-      <div class="obs-sub">Observables from MALA sampling — MSE-trained potential (left) vs. CRMSE post-trained potential (right)</div>
-      <div class="obs-columns">
-        <div>
-          <div class="obs-col-head bad"><span class="dot"></span>MSE + MALA</div>
-          <div class="obs-stack">
-            <div class="figure-slot">
-              <img src="obs_eth_bad_angle-1.png" alt="MSE + MALA: bond angle distribution for ethanol"
-                   onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
-              <div class="figure-placeholder">
-                <span class="ph-label">obs_eth_bad_angle-1.png</span>
-                <span class="ph-desc">Bond-angle distribution, MSE + MALA</span>
-              </div>
-              <div class="figure-caption">Bond-angle distribution drifts away from the physical range.</div>
-            </div>
-            <div class="figure-slot">
-              <img src="obs_eth_close_hyd-1.png" alt="MSE + MALA: hydrogen close-contact distances for ethanol"
-                   onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
-              <div class="figure-placeholder">
-                <span class="ph-label">obs_eth_close_hyd-1.png</span>
-                <span class="ph-desc">Hydrogen close-contact distances, MSE + MALA</span>
-              </div>
-              <div class="figure-caption">Hydrogen atoms are pulled into unphysically close contact.</div>
-            </div>
-            <div class="figure-slot">
-              <img src="obs_pinochio_eth_mol-1.png" alt="MSE + MALA: bond-length stretching for ethanol"
-                   onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
-              <div class="figure-placeholder">
-                <span class="ph-label">obs_pinochio_eth_mol-1.png</span>
-                <span class="ph-desc">Bond-length stretching, MSE + MALA</span>
-              </div>
-              <div class="figure-caption">A bond stretches well past any physical length as the chain escapes.</div>
-            </div>
-          </div>
-        </div>
-        <div>
-          <div class="obs-col-head good"><span class="dot"></span>CRMSE + MALA</div>
-          <div class="obs-stack">
-            <div class="figure-slot">
-              <img src="obs_eth_good_angle-1.png" alt="CRMSE + MALA: bond angle distribution for ethanol"
-                   onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
-              <div class="figure-placeholder">
-                <span class="ph-label">obs_eth_good_angle-1.png</span>
-                <span class="ph-desc">Bond-angle distribution, CRMSE + MALA</span>
-              </div>
-              <div class="figure-caption">Bond-angle distribution stays within the physical range.</div>
-            </div>
-            <div class="figure-slot">
-              <img src="obs_good_dist_hyd-1.png" alt="CRMSE + MALA: hydrogen distances for ethanol"
-                   onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
-              <div class="figure-placeholder">
-                <span class="ph-label">obs_good_dist_hyd-1.png</span>
-                <span class="ph-desc">Hydrogen distances, CRMSE + MALA</span>
-              </div>
-              <div class="figure-caption">Hydrogen distances remain physically sensible throughout sampling.</div>
-            </div>
-            <div class="figure-slot">
-              <img src="obs_good_pinochio-1.png" alt="CRMSE + MALA: bond lengths for ethanol"
-                   onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
-              <div class="figure-placeholder">
-                <span class="ph-label">obs_good_pinochio-1.png</span>
-                <span class="ph-desc">Bond lengths, CRMSE + MALA</span>
-              </div>
-              <div class="figure-caption">Bond lengths stay anchored near their equilibrium values.</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="obs-molecule reveal">
-      <h3>Aspirin</h3>
-      <div class="obs-sub">Same comparison on the larger aspirin molecule</div>
-      <div class="obs-columns">
-        <div>
-          <div class="obs-col-head bad"><span class="dot"></span>MSE + MALA</div>
-          <div class="obs-stack">
-            <div class="figure-slot">
-              <img src="aspirin_bad_obs-1.png" alt="MSE + MALA: sampled observables for aspirin"
-                   onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
-              <div class="figure-placeholder">
-                <span class="ph-label">aspirin_bad_obs-1.png</span>
-                <span class="ph-desc">Sampled observables, MSE + MALA</span>
-              </div>
-              <div class="figure-caption">Sampled geometry departs from the physical basin under MSE, as with ethanol.</div>
-            </div>
-          </div>
-        </div>
-        <div>
-          <div class="obs-col-head good"><span class="dot"></span>CRMSE + MALA</div>
-          <div class="obs-stack">
-            <div class="figure-slot">
-              <img src="aspirin_good_obs-1.png" alt="CRMSE + MALA: sampled observables for aspirin"
-                   onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
-              <div class="figure-placeholder">
-                <span class="ph-label">aspirin_good_obs-1.png</span>
-                <span class="ph-desc">Sampled observables, CRMSE + MALA</span>
-              </div>
-              <div class="figure-caption">CRMSE keeps the larger aspirin molecule within physically valid geometry.</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
 <!-- ================= VIDEOS ================= -->
 <section id="videos">
   <div class="wrap">
-    <div class="sec-head"><span class="sec-num">04</span><h2>Watching the sampler fail — and recover</h2></div>
+    <div class="sec-head"><span class="sec-num">03</span><h2>Watching the sampler fail — and recover</h2></div>
     <p class="lead reveal">Numbers on a table hide what this failure actually looks like. Both clips below show MALA simulations of the same ethanol molecule, from the same starting configuration, under the two potentials.</p>
 
     <div class="video-grid">
@@ -601,68 +461,10 @@
   </div>
 </section>
 
-<!-- ================= FREE-ENERGY PROFILES ================= -->
-<section id="free-energy">
-  <div class="wrap">
-    <div class="sec-head"><span class="sec-num">05</span><h2>Free-energy profiles</h2></div>
-    <p class="lead reveal">Matching energies and distances shows CRMSE samples physically valid configurations — but not that it recovers the right relative populations within the basin. The free-energy profile along a torsional angle, F(φ) = −k<sub>B</sub>T ln p(φ), is a stricter test of that internal structure.</p>
-
-    <div class="obs-molecule reveal">
-      <h3>Ethanol — methyl rotor</h3>
-      <p class="reveal" style="margin-top:0;">Along the H–C–C–O dihedral, the MSE model distorts the torsional profile; CRMSE recovers it to near-quantitative agreement with the DFT reference.</p>
-      <div class="figure-grid">
-        <div class="figure-slot">
-          <img src="methyl_rotor_mse_eth-1.png" alt="MSE-trained potential: methyl rotor free-energy profile for ethanol"
-               onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
-          <div class="figure-placeholder">
-            <span class="ph-label">methyl_rotor_mse_eth-1.png</span>
-            <span class="ph-desc">Methyl rotor free-energy profile, MSE-trained potential</span>
-          </div>
-          <div class="figure-caption">MSE-trained potential: distorted torsional free-energy profile.</div>
-        </div>
-        <div class="figure-slot">
-          <img src="crmse_methyl_rotor_eth-1.png" alt="CRMSE post-trained potential: methyl rotor free-energy profile for ethanol"
-               onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
-          <div class="figure-placeholder">
-            <span class="ph-label">crmse_methyl_rotor_eth-1.png</span>
-            <span class="ph-desc">Methyl rotor free-energy profile, CRMSE post-trained potential</span>
-          </div>
-          <div class="figure-caption">CRMSE post-trained potential: recovers the torsional barrier to near the DFT reference.</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="obs-molecule reveal" style="margin-top:40px;">
-      <h3>Aspirin — ester rotor</h3>
-      <p class="reveal" style="margin-top:0;">Aspirin's ester dihedral ψ sets the equilibrium between its two planar conformers. The MSE profile is systematically compressed and shifted relative to DFT, with visible spread between independent MALA chains; CRMSE corrects both the shape and the chain-to-chain spread, matching the DFT reference within its statistical uncertainty.</p>
-      <div class="figure-grid">
-        <div class="figure-slot">
-          <img src="free_energy_aspirin_mse-1.png" alt="MSE-trained potential: ester rotor free-energy profile for aspirin"
-               onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
-          <div class="figure-placeholder">
-            <span class="ph-label">free_energy_aspirin_mse-1.png</span>
-            <span class="ph-desc">Ester rotor free-energy profile, MSE-trained potential</span>
-          </div>
-          <div class="figure-caption">MSE-trained potential: compressed, shifted profile with notable inter-chain spread.</div>
-        </div>
-        <div class="figure-slot">
-          <img src="free_energ_crmse-1.png" alt="CRMSE post-trained potential: ester rotor free-energy profile for aspirin"
-               onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
-          <div class="figure-placeholder">
-            <span class="ph-label">free_energ_crmse-1.png</span>
-            <span class="ph-desc">Ester rotor free-energy profile, CRMSE post-trained potential</span>
-          </div>
-          <div class="figure-caption">CRMSE post-trained potential: matches DFT within statistical uncertainty, spread collapsed to the line width.</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
 <!-- ================= RESULTS ================= -->
 <section id="results">
   <div class="wrap">
-    <div class="sec-head"><span class="sec-num">06</span><h2>Results</h2></div>
+    <div class="sec-head"><span class="sec-num">04</span><h2>Results</h2></div>
     <p class="lead reveal">Tested on ethanol and aspirin from the MD17 benchmark, using a standard GNN-LF architecture with no changes beyond the training objective.</p>
 
     <table class="reveal">
@@ -729,7 +531,7 @@
 <!-- ================= CONCLUSION ================= -->
 <section id="conclusion">
   <div class="wrap">
-    <div class="sec-head"><span class="sec-num">07</span><h2>Takeaway</h2></div>
+    <div class="sec-head"><span class="sec-num">05</span><h2>Takeaway</h2></div>
     <p class="pull reveal">A model built to be <span class="accent">sampled</span> should be trained the way it's used — to reproduce its own distribution, not just to fit a finite set of points.</p>
     <p class="reveal">This isn't specific to chemistry. Any learned regressor that gets deployed as a generator — queried over and over to produce a distribution rather than a single prediction — inherits the same blind spot: pointwise accuracy at training locations says nothing about the shape of the distribution the model induces once it's sampled freely. CRMSE is a minimal, architecture-agnostic way to close that gap for molecular potentials, using no data beyond what the model already had.</p>
   </div>
@@ -737,7 +539,7 @@
 
 <footer id="cite">
   <div class="wrap">
-    <div class="sec-head"><span class="sec-num">08</span><h2>Cite this work</h2></div>
+    <div class="sec-head"><span class="sec-num">06</span><h2>Cite this work</h2></div>
     <div class="cite-box reveal">Tzivrailis, D., Sotiropoulos, G., Rosso, A., &amp; Kawasaki, E. (2026).
 Contrastive Regularization of Machine Learning Potentials.
 arXiv:2606.31660 [physics.chem-ph].
