@@ -382,3 +382,436 @@
                  Q 310,256.5 386,233.15
                  Q 462,209.8 366,215.05
                  Q 270,220.3 374,201.8
+                 Q 478,183.3 362,177.15
+                 Q 246,171 370,155.6
+                 Q 494,140.2 362,130.95
+                 Q 230,121.7 358,137.1
+                 Q 486,152.5 370,174.1
+                 Q 254,195.7 414,269.7"
+              fill="none" stroke="var(--ice)" stroke-width="2" stroke-dasharray="6 5" stroke-linecap="round" opacity="0"/>
+
+        <text id="ghostMinLabel" x="560" y="415" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" fill="var(--red)">spurious minimum</text>
+
+        <!-- ball marks the end of the current trajectory -->
+        <circle id="ball" cx="574" cy="393.7" r="8" fill="#ececec"/>
+      </svg>
+
+      <div class="toggle-row">
+        <span id="mseLabel" class="active mse-label">MSE training</span>
+        <div class="switch" id="landscapeSwitch" role="button" tabindex="0" aria-label="Toggle between MSE and CRMSE landscape">
+          <div class="knob"></div>
+        </div>
+        <span id="crLabel" class="cr-label">CRMSE post-training</span>
+      </div>
+      <div class="caption-small" id="landscapeCaption">the MCMC trajectory drifts out of the training region and settles into a spurious low-energy minimum</div>
+    </div>
+  </div>
+</header>
+
+<!-- ================= WHY ================= -->
+<section id="why">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">01</span><h2>Why this matters</h2></div>
+    <p class="lead reveal">Machine learning interatomic potentials are usually graded the way any regression model is graded: hold out some data, check that predicted energies and forces land close to the reference. By that standard, modern potentials trained on Density Functional Theory data are excellent — chemically accurate, even.</p>
+    <p class="reveal">But a potential is rarely used to predict a single energy. It's used to <em style="color:var(--text);font-style:normal;">drive a simulation</em> — thousands or millions of steps of molecular dynamics or Monte Carlo sampling — and the quantities scientists actually care about, free energies, structural distributions, conformational populations, are averages over whatever distribution that simulation settles into. Matching energies at a finite set of points says nothing about what happens in the much larger space the model was never trained on. Left unconstrained there, an expressive network is free to invent deep, entirely fictitious low-energy basins, and a long enough simulation will eventually find and fall into one. The paper this site is based on shows that this isn't a rare failure mode: for small, standard benchmark molecules, it's close to guaranteed.</p>
+  </div>
+</section>
+
+<!-- ================= METHOD ================= -->
+<section id="method">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">02</span><h2>The mechanism</h2></div>
+    <p class="lead reveal">Standard training minimizes a Mean Squared Error between predicted and reference energies. It has no notion of temperature, no notion of a distribution — it only ever sees the points it's given, and stays silent everywhere else.</p>
+    <p class="reveal">Contrastive Regularized MSE (CRMSE) adds a second term that does account for the distribution the potential implicitly defines: its own Boltzmann distribution, <span class="katex-inline">\( p_\theta(x) \propto e^{-\beta E_\theta(x)} \)</span>. The idea, borrowed from energy-based model training, is simple: push the energy of real training configurations down, and push the energy of configurations the model itself likes to wander into back up.</p>
+
+    <div class="eq-block reveal">
+      \[
+      \mathcal{L}^{\text{CRMSE}}(\theta) \;=\; \mathcal{L}^{\text{MSE}}(\theta) \;+\; \lambda \left[ \frac{\beta}{N}\sum_{i=1}^{N} E_\theta(x_i) \;-\; \frac{\beta}{M}\sum_{j=1}^{M} E_\theta(x_j^-) \right]
+      \]
+    </div>
+    <div class="eq-legend reveal">
+      <span class="p1"><i></i>positive term — real training configurations, pushed down</span>
+      <span class="p2"><i></i>negative term — model's own Langevin samples, pushed up</span>
+    </div>
+
+    <p class="reveal">Practically, that means: run the potential, catch the unphysical places it drifts to, and teach it that those places should be high-energy. No new DFT labels are needed — the model is grading its own mistakes.</p>
+
+    <div class="steps">
+      <div class="step-card reveal">
+        <span class="k">Step 1 — Pretrain</span>
+        <p>Train a standard GNN potential to convergence with ordinary energy + force MSE. It's accurate on held-out data — and, as shown below, still an unreliable sampler.</p>
+      </div>
+      <div class="step-card reveal">
+        <span class="k">Step 2 — Expose the failure</span>
+        <p>Run MALA / Langevin sampling from this potential and collect the atypical, low-energy configurations it drifts into. These seed a persistent replay buffer.</p>
+      </div>
+      <div class="step-card reveal">
+        <span class="k">Step 3 — Contrastive post-training</span>
+        <p>Continue training with the CRMSE loss: lower the energy of real data, raise the energy of the replay-buffer samples, refreshing the buffer with fresh Langevin steps each epoch.</p>
+      </div>
+      <div class="step-card reveal">
+        <span class="k">Step 4 — Resample</span>
+        <p>The corrected potential is dropped back into the same MALA sampler, with the same settings, and re-evaluated against the DFT reference.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SAMPLED CONFIGURATIONS (OBSERVABLES) ================= -->
+<section id="observables">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">03</span><h2>Sampled configurations</h2></div>
+    <p class="lead reveal">Aggregate statistics only go so far — individual snapshots pulled from the MALA chains tell the same story more directly. Under MSE, sampled geometries drift into implausible arrangements; under CRMSE, they stay physically sensible.</p>
+
+    <div class="obs-molecule reveal">
+      <h3>Ethanol</h3>
+      <div class="obs-sub">Observables from MALA sampling — MSE-trained potential (left) vs. CRMSE post-trained potential (right)</div>
+      <div class="obs-columns">
+        <div>
+          <div class="obs-col-head bad"><span class="dot"></span>MSE + MALA</div>
+          <div class="obs-stack">
+            <div class="figure-slot">
+              <img src="obs_eth_bad_angle.pdf" alt="MSE + MALA: bond angle distribution for ethanol"
+                   onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+              <div class="figure-placeholder">
+                <span class="ph-label">obs_eth_bad_angle.pdf</span>
+                <span class="ph-desc">Bond-angle distribution, MSE + MALA</span>
+              </div>
+              <div class="figure-caption">Bond-angle distribution drifts away from the physical range.</div>
+            </div>
+            <div class="figure-slot">
+              <img src="obs_eth_close_hyd.pdf" alt="MSE + MALA: hydrogen close-contact distances for ethanol"
+                   onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+              <div class="figure-placeholder">
+                <span class="ph-label">obs_eth_close_hyd.pdf</span>
+                <span class="ph-desc">Hydrogen close-contact distances, MSE + MALA</span>
+              </div>
+              <div class="figure-caption">Hydrogen atoms are pulled into unphysically close contact.</div>
+            </div>
+            <div class="figure-slot">
+              <img src="obs_pinochio_eth_mol.pdf" alt="MSE + MALA: bond-length stretching for ethanol"
+                   onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+              <div class="figure-placeholder">
+                <span class="ph-label">obs_pinochio_eth_mol.pdf</span>
+                <span class="ph-desc">Bond-length stretching, MSE + MALA</span>
+              </div>
+              <div class="figure-caption">A bond stretches well past any physical length as the chain escapes.</div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="obs-col-head good"><span class="dot"></span>CRMSE + MALA</div>
+          <div class="obs-stack">
+            <div class="figure-slot">
+              <img src="obs_eth_good_angle.pdf" alt="CRMSE + MALA: bond angle distribution for ethanol"
+                   onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+              <div class="figure-placeholder">
+                <span class="ph-label">obs_eth_good_angle.pdf</span>
+                <span class="ph-desc">Bond-angle distribution, CRMSE + MALA</span>
+              </div>
+              <div class="figure-caption">Bond-angle distribution stays within the physical range.</div>
+            </div>
+            <div class="figure-slot">
+              <img src="obs_good_dist_hyd.pdf" alt="CRMSE + MALA: hydrogen distances for ethanol"
+                   onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+              <div class="figure-placeholder">
+                <span class="ph-label">obs_good_dist_hyd.pdf</span>
+                <span class="ph-desc">Hydrogen distances, CRMSE + MALA</span>
+              </div>
+              <div class="figure-caption">Hydrogen distances remain physically sensible throughout sampling.</div>
+            </div>
+            <div class="figure-slot">
+              <img src="obs_good_pinochio.pdf" alt="CRMSE + MALA: bond lengths for ethanol"
+                   onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+              <div class="figure-placeholder">
+                <span class="ph-label">obs_good_pinochio.pdf</span>
+                <span class="ph-desc">Bond lengths, CRMSE + MALA</span>
+              </div>
+              <div class="figure-caption">Bond lengths stay anchored near their equilibrium values.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="obs-molecule reveal">
+      <h3>Aspirin</h3>
+      <div class="obs-sub">Same comparison on the larger aspirin molecule</div>
+      <div class="obs-columns">
+        <div>
+          <div class="obs-col-head bad"><span class="dot"></span>MSE + MALA</div>
+          <div class="obs-stack">
+            <div class="figure-slot">
+              <img src="aspirin_bad_obs.pdf" alt="MSE + MALA: sampled observables for aspirin"
+                   onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+              <div class="figure-placeholder">
+                <span class="ph-label">aspirin_bad_obs.pdf</span>
+                <span class="ph-desc">Sampled observables, MSE + MALA</span>
+              </div>
+              <div class="figure-caption">Sampled geometry departs from the physical basin under MSE, as with ethanol.</div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="obs-col-head good"><span class="dot"></span>CRMSE + MALA</div>
+          <div class="obs-stack">
+            <div class="figure-slot">
+              <img src="aspirin_good_obs.pdf" alt="CRMSE + MALA: sampled observables for aspirin"
+                   onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+              <div class="figure-placeholder">
+                <span class="ph-label">aspirin_good_obs.pdf</span>
+                <span class="ph-desc">Sampled observables, CRMSE + MALA</span>
+              </div>
+              <div class="figure-caption">CRMSE keeps the larger aspirin molecule within physically valid geometry.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= VIDEOS ================= -->
+<section id="videos">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">04</span><h2>Watching the sampler fail — and recover</h2></div>
+    <p class="lead reveal">Numbers on a table hide what this failure actually looks like. Both clips below show MALA simulations of the same ethanol molecule, from the same starting configuration, under the two potentials.</p>
+
+    <div class="video-grid">
+      <div class="video-card reveal">
+        <video controls preload="metadata" muted>
+          <source src="bad_white_ethanol (1).mp4" type="video/mp4">
+          Your browser does not support embedded video.
+        </video>
+        <div class="video-tag bad"><span class="name"><span class="dot"></span>MSE-trained potential</span></div>
+        <div class="video-desc">The trajectory escapes the physical basin: bonds stretch past any physical bond length, atoms drift into configurations DFT never produced. Predictive accuracy on held-out data gave no warning this would happen.</div>
+      </div>
+      <div class="video-card reveal">
+        <video controls preload="metadata" muted>
+          <source src="good_white_ethanol (1).mp4" type="video/mp4">
+          Your browser does not support embedded video.
+        </video>
+        <div class="video-tag good"><span class="name"><span class="dot"></span>CRMSE post-trained potential</span></div>
+        <div class="video-desc">Same molecule, same sampler, same starting point. The contrastive term has raised a wall around the spurious region, and the ethanol molecule stays within physically sensible geometry for the full run.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FREE-ENERGY PROFILES ================= -->
+<section id="free-energy">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">05</span><h2>Free-energy profiles</h2></div>
+    <p class="lead reveal">Matching energies and distances shows CRMSE samples physically valid configurations — but not that it recovers the right relative populations within the basin. The free-energy profile along a torsional angle, F(φ) = −k<sub>B</sub>T ln p(φ), is a stricter test of that internal structure.</p>
+
+    <div class="obs-molecule reveal">
+      <h3>Ethanol — methyl rotor</h3>
+      <p class="reveal" style="margin-top:0;">Along the H–C–C–O dihedral, the MSE model distorts the torsional profile; CRMSE recovers it to near-quantitative agreement with the DFT reference.</p>
+      <div class="figure-grid">
+        <div class="figure-slot">
+          <img src="methyl_rotor_mse_eth.pdf" alt="MSE-trained potential: methyl rotor free-energy profile for ethanol"
+               onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+          <div class="figure-placeholder">
+            <span class="ph-label">methyl_rotor_mse_eth.pdf</span>
+            <span class="ph-desc">Methyl rotor free-energy profile, MSE-trained potential</span>
+          </div>
+          <div class="figure-caption">MSE-trained potential: distorted torsional free-energy profile.</div>
+        </div>
+        <div class="figure-slot">
+          <img src="crmse_methyl_rotor_eth.pdf" alt="CRMSE post-trained potential: methyl rotor free-energy profile for ethanol"
+               onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+          <div class="figure-placeholder">
+            <span class="ph-label">crmse_methyl_rotor_eth.pdf</span>
+            <span class="ph-desc">Methyl rotor free-energy profile, CRMSE post-trained potential</span>
+          </div>
+          <div class="figure-caption">CRMSE post-trained potential: recovers the torsional barrier to near the DFT reference.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="obs-molecule reveal" style="margin-top:40px;">
+      <h3>Aspirin — ester rotor</h3>
+      <p class="reveal" style="margin-top:0;">Aspirin's ester dihedral ψ sets the equilibrium between its two planar conformers. The MSE profile is systematically compressed and shifted relative to DFT, with visible spread between independent MALA chains; CRMSE corrects both the shape and the chain-to-chain spread, matching the DFT reference within its statistical uncertainty.</p>
+      <div class="figure-grid">
+        <div class="figure-slot">
+          <img src="free_energy_aspirin_mse.pdf" alt="MSE-trained potential: ester rotor free-energy profile for aspirin"
+               onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+          <div class="figure-placeholder">
+            <span class="ph-label">free_energy_aspirin_mse.pdf</span>
+            <span class="ph-desc">Ester rotor free-energy profile, MSE-trained potential</span>
+          </div>
+          <div class="figure-caption">MSE-trained potential: compressed, shifted profile with notable inter-chain spread.</div>
+        </div>
+        <div class="figure-slot">
+          <img src="free_energ_crmse.pdf" alt="CRMSE post-trained potential: ester rotor free-energy profile for aspirin"
+               onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+          <div class="figure-placeholder">
+            <span class="ph-label">free_energ_crmse.pdf</span>
+            <span class="ph-desc">Ester rotor free-energy profile, CRMSE post-trained potential</span>
+          </div>
+          <div class="figure-caption">CRMSE post-trained potential: matches DFT within statistical uncertainty, spread collapsed to the line width.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= RESULTS ================= -->
+<section id="results">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">06</span><h2>Results</h2></div>
+    <p class="lead reveal">Tested on ethanol and aspirin from the MD17 benchmark, using a standard GNN-LF architecture with no changes beyond the training objective.</p>
+
+    <table class="reveal">
+      <thead><tr><th>Model (ethanol)</th><th>Energy MAE</th><th>Force MAE</th></tr></thead>
+      <tbody>
+        <tr><td>MSE</td><td class="num">0.01 kcal/mol</td><td class="num">0.07 kcal/mol/Å</td></tr>
+        <tr><td>CRMSE</td><td class="num">0.03 kcal/mol</td><td class="num">0.13 kcal/mol/Å</td></tr>
+      </tbody>
+    </table>
+    <p class="result-note">Both stay well inside chemical accuracy — the correction reshapes the landscape without meaningfully hurting the numbers the model is normally graded on.</p>
+
+    <!-- Predicted vs. reference energy and force accuracy -->
+    <div class="figure-grid reveal">
+      <div class="figure-slot">
+        <img src="mse_energy_parity.png" alt="MSE-trained model: predicted vs reference energy on held-out DFT set"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+        <div class="figure-placeholder">
+          <span class="ph-label">mse_energy_parity.png</span>
+          <span class="ph-desc">MSE model — predicted vs. reference energy, 1000 held-out DFT configurations</span>
+        </div>
+        <div class="figure-caption">MSE-trained potential: energy predictions fall tightly along the reference line (MAE 0.01 kcal/mol) — accurate everywhere it was measured.</div>
+      </div>
+
+      <div class="figure-slot">
+        <img src="mse_force_parity.png" alt="MSE-trained model: predicted vs reference forces on held-out DFT set"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+        <div class="figure-placeholder">
+          <span class="ph-label">mse_force_parity.png</span>
+          <span class="ph-desc">MSE model — predicted vs. reference forces, 1000 held-out DFT configurations</span>
+        </div>
+        <div class="figure-caption">MSE-trained potential: force predictions closely track the reference (MAE 0.07 kcal/mol/Å), yet this accuracy tells nothing about sampling behavior.</div>
+      </div>
+    </div>
+
+    <div class="figure-grid reveal" style="margin-top:20px;">
+      <div class="figure-slot">
+        <img src="crmse_energy_parity.png" alt="CRMSE post-trained model: predicted vs reference energy on held-out DFT set"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+        <div class="figure-placeholder">
+          <span class="ph-label">crmse_energy_parity.png</span>
+          <span class="ph-desc">CRMSE model — predicted vs. reference energy, 1000 held-out DFT configurations</span>
+        </div>
+        <div class="figure-caption">CRMSE post-trained potential: energy accuracy remains close to the MSE baseline (MAE 0.03 kcal/mol) — the correction reshapes unsampled regions without disturbing the data-constrained basin.</div>
+      </div>
+
+      <div class="figure-slot">
+        <img src="crmse_force_parity.png" alt="CRMSE post-trained model: predicted vs reference forces on held-out DFT set"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+        <div class="figure-placeholder">
+          <span class="ph-label">crmse_force_parity.png</span>
+          <span class="ph-desc">CRMSE model — predicted vs. reference forces, 1000 held-out DFT configurations</span>
+        </div>
+        <div class="figure-caption">CRMSE post-trained potential: force accuracy is essentially unchanged from the MSE baseline (MAE 0.13 kcal/mol/Å), both well within chemical accuracy.</div>
+      </div>
+    </div>
+
+    <div class="findings">
+      <div class="finding reveal"><span class="mark">→</span><p>The correction holds up when the labeled training set is cut from 950 down to 200 configurations, and is robust across roughly a decade and a half of the regularization strength λ.</p></div>
+      <div class="finding reveal"><span class="mark">→</span><p>The same procedure, unmodified, carries over to aspirin — a more than twice larger molecule with a second, chemically distinct torsional mode.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= CONCLUSION ================= -->
+<section id="conclusion">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">07</span><h2>Takeaway</h2></div>
+    <p class="pull reveal">A model built to be <span class="accent">sampled</span> should be trained the way it's used — to reproduce its own distribution, not just to fit a finite set of points.</p>
+    <p class="reveal">This isn't specific to chemistry. Any learned regressor that gets deployed as a generator — queried over and over to produce a distribution rather than a single prediction — inherits the same blind spot: pointwise accuracy at training locations says nothing about the shape of the distribution the model induces once it's sampled freely. CRMSE is a minimal, architecture-agnostic way to close that gap for molecular potentials, using no data beyond what the model already had.</p>
+  </div>
+</section>
+
+<footer id="cite">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">08</span><h2>Cite this work</h2></div>
+    <div class="cite-box reveal">Tzivrailis, D., Sotiropoulos, G., Rosso, A., &amp; Kawasaki, E. (2026).
+Contrastive Regularization of Machine Learning Potentials.
+arXiv:2606.31660 [physics.chem-ph].
+https://arxiv.org/abs/2606.31660</div>
+
+    <div class="foot-links">
+      <a href="https://arxiv.org/abs/2606.31660" target="_blank" rel="noopener">arXiv abstract ↗</a>
+      <a href="https://arxiv.org/pdf/2606.31660" target="_blank" rel="noopener">PDF ↗</a>
+      <a href="#" id="topLink">Back to top ↑</a>
+    </div>
+    <div class="foot-meta">Code and figure-reproduction scripts to be released on publication.</div>
+  </div>
+</footer>
+
+<script>
+  // reveal-on-scroll
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  },{threshold:0.12});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+  // ---- energy landscape toggle, smooth TikZ-faithful curves ----
+  const sw = document.getElementById('landscapeSwitch');
+  const wallCurve = document.getElementById('wallCurve');
+  const baseCurve = document.getElementById('baseCurve');
+  const trajMSE = document.getElementById('trajMSE');
+  const trajCR = document.getElementById('trajCR');
+  const ghostMinLabel = document.getElementById('ghostMinLabel');
+  const ball = document.getElementById('ball');
+  const mseLabel = document.getElementById('mseLabel');
+  const crLabel = document.getElementById('crLabel');
+  const caption = document.getElementById('landscapeCaption');
+  let crmse = false;
+
+  function renderLandscape(){
+    if(crmse){
+      sw.classList.add('on');
+      mseLabel.classList.remove('active');
+      crLabel.classList.add('active');
+      wallCurve.setAttribute('stroke-width','3');
+      baseCurve.setAttribute('opacity','0.35');
+      trajMSE.setAttribute('opacity','0');
+      trajCR.setAttribute('opacity','1');
+      ghostMinLabel.setAttribute('opacity','0');
+      ball.setAttribute('cx','414'); ball.setAttribute('cy','269.7'); ball.setAttribute('fill','var(--ice)');
+      caption.textContent = 'the contrastive term raises a wall outside the training region — the trajectory bounces back instead of escaping';
+    } else {
+      sw.classList.remove('on');
+      crLabel.classList.remove('active');
+      mseLabel.classList.add('active');
+      wallCurve.setAttribute('stroke-width','0');
+      baseCurve.setAttribute('opacity','1');
+      trajMSE.setAttribute('opacity','1');
+      trajCR.setAttribute('opacity','0');
+      ghostMinLabel.setAttribute('opacity','1');
+      ball.setAttribute('cx','574'); ball.setAttribute('cy','393.7'); ball.setAttribute('fill','#ececec');
+      caption.textContent = 'the MCMC trajectory drifts out of the training region and settles into a spurious low-energy minimum';
+    }
+  }
+  sw.addEventListener('click', ()=>{ crmse=!crmse; renderLandscape(); });
+  sw.addEventListener('keydown', (e)=>{ if(e.key==='Enter'||e.key===' '){ crmse=!crmse; renderLandscape(); } });
+  renderLandscape();
+
+  document.getElementById('topLink').addEventListener('click',(e)=>{e.preventDefault(); window.scrollTo({top:0,behavior:'smooth'});});
+
+  // ---- render KaTeX equations once the script has loaded ----
+  window.addEventListener('load', function () {
+    if (window.renderMathInElement) {
+      renderMathInElement(document.body, {
+        delimiters: [
+          {left: "\\[", right: "\\]", display: true},
+          {left: "\\(", right: "\\)", display: false}
+        ]
+      });
+    }
+  });
+</script>
+
+</body>
+</html>
